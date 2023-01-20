@@ -1,0 +1,18 @@
+# bash completion for maprcli                              -*- shell-script -*- 
+# Copyright 2023 Edwin Buck <edwbuck@gmail.com>
+# For use with mapr-core version 7.0.0
+
+_maprcli()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 1 ]]; then
+        COMPREPLY=( $( compgen -W 'acerole'
+        -- "$cur") )
+    else
+    fi
+}
+complete -F _maprcli maprcli
+
+# ex filetype=sh

@@ -1,0 +1,2855 @@
+# bash completion for maprcli                              -*- shell-script -*- 
+# Copyright 2023 Edwin Buck <edwbuck@gmail.com>
+# For use with mapr-core version 6.2.0
+
+_mapr_cluster_names()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    CLUSTERS=" "
+    while read -r LINE; do
+        CLUSTERS+="${LINE%% *} "
+    done < /opt/mapr/conf/mapr-clusters.conf
+
+    COMPREPLY=( $( compgen -W $CLUSTERS -- "$cur" ) )
+}
+
+_mapr_output()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    COMPREPLY=( $( compgen -W "terse verbose" -- "$cur" ) )
+}
+
+_mapr_booleans()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    COMPREPLY=( $( compgen -W "0 1 false true" -- "$cur" ) )
+}
+
+# Currently too slow to be used, but lists all alarms
+_mapr_alarm()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    COMPREPLY=( $( compgen -W "$(maprcli alarm names)" -- "$cur" ) )
+}
+
+_maprcli_acerole_validate()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -role)
+            COMPREPLY=()
+            return
+        ;;
+    esac
+
+    OPTIONS=" -role "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_acerole()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'validate' -- "$cur" ) )
+    else
+        case "${words[2]}" in
+            validate)
+                _maprcli_acerole_${words[2]}
+        ;;
+        esac
+    fi
+}
+
+_maprcli_acl_edit()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -name|-user|-group)
+            COMPREPLY=( )
+        return
+        ;;
+        -type)
+            COMPREPLY=( $( compgen -W "cluster volume securitypolicy" -- "$cur" ) )
+            return
+        ;;
+    -cluster)
+            _mapr_cluster_names
+        return
+        ;;
+    esac
+
+    OPTIONS=" -type "
+    if [[ " ${words[@]} " =~ " -type securitypolicy " ]] || 
+       [[ " ${words[@]} " =~ " -type volume " ]]; then
+        OPTIONS+="-name "
+    fi
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    # special either-or selection
+    OPTIONS=" -user -group "
+    if [[ " ${words[@]} " =~ " -user " ]] || 
+       [[ " ${words[@]} " =~ " -group " ]]; then
+        OPTIONS=" "
+    fi
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_acl_set()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -name|-user|-group)
+            COMPREPLY=( )
+            return
+        ;;
+        -type)
+            COMPREPLY=( $( compgen -W "cluster volume securitypolicy" -- "$cur" ) )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -type "
+    if [[ " ${words[@]} " =~ " -type securitypolicy " ]] || 
+       [[ " ${words[@]} " =~ " -type volume " ]]; then
+        OPTIONS+="-name "
+    fi
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    # special either-or selection
+    OPTIONS=" -user -group "
+    if [[ " ${words[@]} " =~ " -user " ]] || 
+       [[ " ${words[@]} " =~ " -group " ]]; then
+        OPTIONS=" "
+    fi
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_acl_show()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -name|-user|-group)
+            COMPREPLY=( )
+            return
+        ;;
+        -type)
+            COMPREPLY=( $( compgen -W "cluster volume securitypolicy" -- "$cur" ) )
+            return
+        ;;
+        -output)
+            _mapr_output
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -type "
+    if [[ " ${words[@]} " =~ " -type securitypolicy " ]] || 
+       [[ " ${words[@]} " =~ " -type volume " ]]; then
+        OPTIONS+="-name "
+    fi
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+        if [[ ${OPTIONS} != " " ]]; then
+            COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -user -group -output -perm -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_acl_userperms()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -name|-user)
+            COMPREPLY=( )
+            return
+        ;;
+        -type)
+            COMPREPLY=( $( compgen -W "cluster volume securitypolicy" 
+                          -- "$cur" ) )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -type -user "
+    if [[ " ${words[@]} " =~ " -type securitypolicy " ]] || 
+       [[ " ${words[@]} " =~ " -type volume " ]]; then
+        OPTIONS+="-name "
+    fi
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_acl()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'show userperms set edit' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            edit|set|show|userperms)
+                _maprcli_acl_${words[2]}
+        ;;
+        esac
+    fi
+
+
+}
+
+_maprcli_alarm_clear()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -alarm|-entity)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -alarm "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -entity -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_clearall()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_clearmulti()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -alarm)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -alarm "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_config_load()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -output)
+            _mapr_output
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json -output "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_config_save()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -values)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -values "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_config()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 3 ]]; then
+        COMPREPLY=( $( compgen -W 'load save' -- "$cur" ) )
+        return
+    else
+        case "${words[3]}" in
+            load|save)
+                _maprcli_alarm_config_${words[3]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_alarm_group_addAlarms()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -groupname|-alarms)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -groupname -alarms "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_group_addEmails()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -groupname|-emails)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -groupname -emails "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_group_deleteAlarms()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -groupname|-alarms)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -groupname -alarms "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_group_deleteEmails()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -groupname|-emails)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -groupname -emails "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_group_listGroup()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -start|-limit)
+            COMPREPLY=()
+            return
+        ;;
+        -output)
+            _mapr_output
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -limit -output -start -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_group()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 3 ]]; then
+        COMPREPLY=( $( compgen -W 'addAlarms addEmails deleteAlarms deleteEmails listGroup' -- "$cur" ) )
+        return
+    else
+        case "${words[3]}" in
+            addAlarms|addEmails|deleteAlarms|deleteEmails|listGroup)
+                _maprcli_alarm_group_${words[3]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_alarm_list()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_mute()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -alarm|-muteminutes)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -alarm "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -muteminutes -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_names()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_raise()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -alarm|-entity|-description)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -alarm "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -description -entity -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_summary()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -entitylimit)
+            COMPREPLY=()
+            return
+        ;;
+        -output)
+            _mapr_output
+            return
+        ;;
+        -type)
+            COMPREPLY=( $( compgen -W "cluster node volume ae" -- "$cur" ) )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -entitylimit "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -type -muted -all -output -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm_unmute()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -alarm)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -alarm "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_alarm()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'clear clearall clearmulti config
+           group list mute names summary raise unmute' -- "$cur" ) )
+    return
+    else
+        case "${words[2]}" in
+            clear|clearall|clearmulti|config|group|list|mute|names|raise|summary|unmute)
+                _maprcli_alarm_${words[2]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_audit_cluster()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -enabled)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -enabled "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_audit_data()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -maxsize|-retention)
+            COMPREPLY=()
+            return
+        ;;
+        -enabled)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    # special match at least one
+    OPTIONS=" -enabled -retention -maxsize "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=" "
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json -enabled -retention -maxsize "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_audit_info()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_audit()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'data cluster info' -- "$cur" ) )
+    return
+    else
+        case "${words[2]}" in
+            data|cluster|info)
+                _maprcli_audit_${words[2]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_blacklist_user()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -name|-blacklisttime)
+            COMPREPLY=()
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -name "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -blacklisttime -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_blacklist_listusers()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_blacklist()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'user listusers' -- "$cur" ) )
+    return
+    else
+        case "${words[2]}" in
+            user|listusers)
+                _maprcli_blacklist_${words[2]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_cluster_feature_enable()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -name)
+            COMPREPLY=()
+            return
+        ;;
+        -force)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    # special either-or selection
+    OPTIONS=" -all -name "
+    if [[ " ${words[@]} " =~ " -all " ]] || 
+       [[ " ${words[@]} " =~ " -name " ]]; then
+        OPTIONS=" "
+    fi
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -force -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_feature_list()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -name)
+            COMPREPLY=()
+            return
+        ;;
+    esac
+
+    # special match just one
+    OPTIONS=" -name -enabled -disabled "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=" "
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_feature()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 3 ]]; then
+        COMPREPLY=( $( compgen -W 'enable list' -- "$cur" ) )
+        return
+    else
+        case "${words[3]}" in
+            enable|list)
+                _maprcli_cluster_feature_${words[3]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_cluster_gateway_delete()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster|-dstcluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -dstcluster "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_gateway_get()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster|-dstcluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -dstcluster "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_gateway_list()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_gateway_local()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -format)
+            COMPREPLY=( $( compgen -W 'dns text' -- "$cur" ) )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -format -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_gateway_resolve()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster|-dstcluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -dstcluster "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_gateway_set()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -gateways)
+            COMPGEN=( )
+            return
+        ;;
+        -cluster|-dstcluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -dstcluster -gateways "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_gateway()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 3 ]]; then
+        COMPREPLY=( $( compgen -W 'delete get list local resolve 
+            set' -- "$cur" ) )
+        return
+    else
+        case "${words[3]}" in
+            delete|get|list|local|resolve|set)
+                _maprcli_cluster_gateway_${words[3]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_cluster_info()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -getminmax)
+            COMPREPLY=( $( compgen -W "all volumesize 
+                volumequotasize volumeadvisoryquota
+                volumelogicalusedsize volumenumcontainers
+                volumeguranteednumcontainers
+                volumenumnamespacecontainers
+                volumeguranteednumnamespacecontainers
+                volumenumsnapshots volumecoalesceinterval
+                volumemaxinodesalarmthreshold
+                volumerereplicationtimeout
+                volumemaxnssizembalarmthreshold
+                storagepoolcapacitysize storagepoolusedsize
+                storagepoolavailablesize" -- "$cur" ) )
+            return
+        ;;
+    esac
+
+    OPTIONS=" -getminmax "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_queryservice_clearconfig()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_queryservice_getconfig()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_queryservice_setconfig()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -clusterid|-storageplugin|-znode)
+            COMPREPLY=( )
+            return
+            ;;
+        -enabled)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -clusterid -enabled -storageplugin -znode "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_queryservice()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 3 ]]; then
+        COMPREPLY=( $( compgen -W 'clearconfig getconfig
+            setconfig' -- "$cur" ) )
+        return
+    else
+        case "${words[3]}" in
+            clearconfig|getconfig|setconfig)
+                _maprcli_cluster_queryservice_${words[3]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_cluster_mapreduce_get()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_mapreduce_set()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -mode)
+            COMPREPLY=( $( compgen -W "yarn" -- "$cur" ) )
+            return
+        ;;
+    esac
+
+    OPTIONS=" -mode "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_cluster_mapreduce()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 3 ]]; then
+        COMPREPLY=( $( compgen -W 'get set' -- "$cur" ) )
+        return
+    else
+        case "${words[3]}" in
+            get|set)
+                _maprcli_cluster_mapreduce_${words[3]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_cluster()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'feature gateway info queryservice
+            mapreduce' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            feature|gateway|info|queryservice|mapreduce)
+                _maprcli_cluster_${words[2]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_config_load()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -keys)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -keys "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_config_save()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -values)
+            COMPREPLY=( )
+            return
+        ;;
+        -test)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -values "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -test -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_config()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'load save' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            load|save)
+                _maprcli_config_${words[2]}
+                ;;
+        esac
+    fi
+}
+
+_maprcli_dashboard_info()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -zkconnect)
+            COMPREPLY=( )
+            return
+        ;;
+        -version|-multi_cluster_info)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -multi_cluster_info -version -zkconnect -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dashboard()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'info' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            info)
+                _maprcli_dashboard_${words[2]}
+            ;;
+        esac
+    fi
+}
+
+_maprcli_debugdb_bmap()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fid)
+            COMPREPLY=( )
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fid "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb_cdscan()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fid)
+            COMPREPLY=( )
+            return
+        ;;
+        -allreplica)
+            _mapr_booleans
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fid "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -allreplica -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb_checkTablet()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fid|-tracefile|-startkey|-endkey)
+            COMPREPLY=( )
+            return
+        ;;
+        -skiprangecheck)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fid -tracefile "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -endkey -startkey -skiprangecheck -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb_dump()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fid|-startkey|-endkey|-maxkeys|-idxoffset|-idxsize|-keyidxversion)
+            COMPREPLY=( )
+            return
+        ;;
+        -dumpfullkeys)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fid "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -startkey -endkey -maxkeys -idxoffset -idxsize -dumpfullkeys -keyidxversion -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb_multiOp()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -delkeys|-delfids|-kvfid)
+            COMPREPLY=( )
+            return
+        ;;
+        -keytype)
+            COMPREPLY=( $( compgen -W "int string" -- "$cur" ) )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    # No documentation on the required flags
+
+    OPTIONS=" -delkeys -delfids -kvfid -keytype -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb_partitionSplits()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fid)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fid "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb_rawScan()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fid|-startkey|-dumpfile|-maxkeys)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fid -startkey -dumpfile "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -maxkeys -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb_statTablet()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fid)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fid "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_debugdb()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'bmap cdscan checkTablet dump
+            multiOp partitionSplits rawScan statTablet' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            bmap|cdscan|checkTablet|dump|multiOp|partitionSplits|rawScan|statTablet)
+                _maprcli_debugdb_${words[2]}
+            ;;
+        esac
+    fi
+}
+
+_maprcli_dialhome_ackdial()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -forDay)
+            COMPREPLY=( )
+            return
+        ;;
+    esac
+
+    OPTIONS=" -forDay -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dialhome_enable()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -enable)
+            _mapr_booleans
+            return
+        ;;
+    esac
+
+    OPTIONS=" -enable -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dialhome_lastdialed()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dialhome_metrics()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -forDay)
+            COMPREPLY=( )
+            return
+        ;;
+    esac
+
+    OPTIONS=" -forDay -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dialhome_status()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    OPTIONS=" -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dialhome()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'ackdial enable lastdialed metrics
+            status' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            ackdial|enable|lastdialed|metrics|status)
+                _maprcli_dialhome_${words[2]}
+            ;;
+        esac
+    fi
+}
+
+_maprcli_disk_add()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -host|-disks|-stripeWidth|-label)
+            COMPREPLY=( )
+            return
+        ;;
+    esac
+
+    OPTIONS=" -host -disks "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -stripeWidth -label -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_disk_list()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -host|-startdisk|-limitdisk)
+            COMPREPLY=( )
+            return
+        ;;
+        -system)
+            _mapr_booleans
+            return
+        ;;
+        -sortby)
+            COMPREPLY=( $( compgen -W 'hostname diskname mount vendor
+                modelnum serialnum firmwareversion totalspace usedspace 
+                availablespace fstype powerstatus status errormsg
+                storagepoolid failuretime' -- "$cur" ) )
+            return
+        ;;
+        -sortorder)
+            COMPREPLY=( $( compgen -W 'asc desc' -- "$cur" ) )
+            return
+        ;;
+        -output)
+            _mapr_output
+            return
+        ;;
+    esac
+
+    OPTIONS=" -host "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -limitdisk -sortorder -startdisk -system -output -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_disk_listall()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -start|-limit)
+            COMPREPLY=( )
+            return
+        ;;
+        -output)
+            _mapr_output
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -limit -output -start -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_disk_setlabel()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -host|-disks|-label)
+            COMPREPLY=( )
+            return
+        ;;
+        -force)
+            _mapr_booleans
+            return
+        ;;
+    esac
+
+    OPTIONS=" -host -disks -label "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -force -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_disk_remove()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -host|-disks)
+            COMPREPLY=( )
+            return
+        ;;
+        -force)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -host -disks "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -force -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_disk()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'add list listall remove
+            setlabel' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            add|list|listall|remove|setlabel)
+                _maprcli_disk_${words[2]}
+            ;;
+        esac
+    fi
+}
+
+_maprcli_dump_activewriters()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_assignvouchers()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -volumename)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -volumename "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_balancerinfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_balancermetrics()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_cldbmemoryinfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -trim)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -trim -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_cldbmetainfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_cldbnodes()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -zkconnect)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -zkconnect "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_cldbstate()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -hostip)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -hostip -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_containerinfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -ids)
+            COMPREPLY=( )
+            return
+        ;;
+        -ctime)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -ids "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -ctime -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_containers()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -type)
+            COMPREPLY=( $( compgen -W 'bm offline resync unused waiting' -- "$cur" ) )
+            return
+        ;;
+        -ctime)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -type "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_ecginfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -ids)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -ids "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_fileserverworkinfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -fileserverip|-fileserverport)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -fileserverip -fileserverport "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_replicationmanagerinfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -volumename)
+            COMPREPLY=( )
+            return
+        ;;
+        -ctime)
+            _mapr_booleans
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -volumename "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -ctime -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_replicationmanagerqueueinfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -queue)
+            COMPREPLY=( )
+            return
+        ;;
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -queue "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    if [[ ${OPTIONS} != " " ]]; then
+        COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+        return
+    fi
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_replicationinfo()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump_replicationmetrics()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    case $prev in
+        -cluster)
+            _mapr_cluster_names
+            return
+        ;;
+    esac
+
+    OPTIONS=" -cluster -json "
+    for item in "${words[@]}"; do
+        if [[ "$OPTIONS" =~ " $item " ]]; then
+            OPTIONS=${OPTIONS/" $item "/" "}
+        fi
+    done
+    COMPREPLY=( $( compgen -W "${OPTIONS}" -- "$cur" ) )
+}
+
+_maprcli_dump()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 2 ]]; then
+        COMPREPLY=( $( compgen -W 'containerinfo volumeinfo volumenodes
+            fileserverworkinfo replicationmanagerinfo
+            replicationmanagerqueueinfo rereplicationinfo
+            rereplicationmetrics balancerinfo sprefillinfo
+            balancermetrics rolebalancerinfo rolebalancermetrics
+            zkinfo supportdump cldbstate cldbnodes containers
+            assignvouchers activewriters cldbmemoryinfo
+            snapshotsizeupdateinfo ecginfo cldbmetainfo' -- "$cur" ) )
+        return
+    else
+        case "${words[2]}" in
+            containerinfo|volumeinfo|volumenodes|fileserverworkinfo|replicationmanagerinfo|replicationmanagerqueueinfo|rereplicationinfo|rereplicationmetrics|balancerinfo|sprefillinfo|balancermetrics|rolebalancerinfo|rolebalancermetrics|zkinfo|supportdump|cldbstate|cldbnodes|containers|assignvouchers|activewriters|cldbmemoryinfo|snapshotsizeupdateinfo|ecginfo|cldbmetainfo)
+                _maprcli_dump_${words[2]}
+            ;;
+        esac
+    fi
+}
+
+_maprcli()
+{
+    local cur prev words cword
+    _init_completion || return
+
+    if [[ $cword -eq 1 ]]; then
+        COMPREPLY=( $( compgen -W 'acerole acl alarm audit blacklist
+          cluster config dashboard debugdb dialhome disk dump' -- "$cur" ) )
+    else
+    case "${words[1]}" in
+        acerole|acl|alarm|audit|blacklist|cluster|config|dashboard|debugdb|dialhome|disk|dump)
+                _maprcli_${words[1]}
+        ;;
+    esac
+    fi
+}
+complete -F _maprcli maprcli
+
+# ex: filetype=sh colorcolumn=72 expandtab sw=4 ts=4 sts=4

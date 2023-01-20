@@ -1,0 +1,33 @@
+.TH "maprcli_acerole" "1" "Janurary 6, 2023" "maprcli __VERSION__"
+.SH "NAME"
+maprcli acerole \- maprcli command
+.SH "COMMANDS"
+.sp
+maprcli acerole has one command, validate.  Validate checks to see if a 
+specific ACE Role is configured.
+.SS COMMAND: maprcli acerole validate
+.INDENT 0.0
+.sp
+Validates a role exists in the Access Control Expressions.  This will
+return \fBtrue\fP if the role exists in 
+\fB/opt/mapr/conf/m7_permissions_roles_refimpl.conf\fP and \fBfalse\fP
+otherwise.
+.TP
+.B \fBmaprcli acerole validate -role <name>\fP
+Validates the ACE Role <name> exists\&.
+.UNINDENT
+.SS Examples: maprcli acerole validate
+.INDENT 0.0
+.TP
+.B \fBmaprcli acerole validate -role dataadmin\fP
+Verifies if the ACE Role "dataadmin" exists.
+.TP
+.B \fBmaprcli acerole valdiate -role dataadmin -json\fP
+Verifies if the ACE Role "dataadmin" exists with a JSON style output.
+.UNINDENT
+.SH "FILES"
+.INDENT 0.0
+.TP
+.B \fBConfig Files\fP
+\fB/opt/mapr/conf/m7_permissions_roles_refimpl.conf\fP
+.UNINDENT

@@ -1,0 +1,69 @@
+.TH "maprcli" "1" "Janurary 6, 2023" "maprcli __VERSION__"
+.SH "NAME"
+maprcli \- the MapR command line tool
+.SH "OVERVIEW"
+Because maprcli contains many features, the maprcli manual has been
+split into a number of sections:
+.PP
+.PD 0
+.TP
+\fImaprcli\fP           maprcli overview (this section)
+.TP
+\fImaprcli_acerole\fP   maprcli acerole actions
+.PD
+.SH "DESCRIPTION"
+maprcli is a command line tool capable of making connections to the
+system's configured default MapR cluster, or a configured remote MapR
+cluster\&.  It is used to query and configure many aspects of the MapR
+clusters\&.
+.SH "AUTHOR"
+MapR was originally authored by MapR Technologies, Inc\&. under the
+guidance of M\&. C\&. Srivas\&.  In August 2019, MapR Technologies, 
+Inc\&. and the MapR product was sold to Hewlett Packard Enterprise\&.  
+.PP
+Today MapR is known as Ezmeral Data Fabric (or EDF)\&.  Many of the
+tools and internal references still mention the MapR name\&.
+.SH "AVAILABILITY"
+MapR software is available at https://package\&.mapr\&.hpe\&.com/\&.
+.PP
+MapR will run up to 10 nodes with most production features disabled
+without a license\&.  Evaulation licenses are available by request
+within the product's admin pages\&.  Contact HPE to obtain a permanent
+license\&.
+.SH "MAPR DOCUMENTATION"
+MapR documentation can be obtained at 
+https://docs\&.datafabric\&.hpe\&.com/home\&.  Take care to navigate to
+the documentation matching your specific installation version\&.
+.SH "INVOCATION"
+The \fBmaprcli\fP command is generally followed by an item or action
+that indicates the desired query or modification to be made\&.
+.PP
+.PD 0
+.TP
+\fBacerole\fP     act upon Access Control Expression Roles
+.TP
+\fBacl\fP         act upon Access Control Expressions
+.PD
+.PP
+Each item generally has one or more item-specific sub-commands, as well
+as options.  Some common options across most commands include:
+.PP
+.PD 0
+.TP
+\fB\-cluster\fP   Specify which mapr cluster to issue the command against\&.
+.TP
+\fB\-json\fP      Specify JSON formatted output instead of tabluar output\&.
+.PD
+.SH "AUTHENTICATION"
+All \fBmaprcli\fP commands against a secure cluster require previous
+authentication with the command line tool \fBmaprlogin\fP or are
+authenticated against the optional configured Kerberos server\&.  If
+the cluster is configured to be insecure, the \fBmaprcli\fP command runs
+as the current user, which is easily spoofable.
+.SH "FILES"
+.PD 0
+.TP
+\fB/opt/mapr/conf/mapr-clusters.conf\fP
+.PD
+.SH "SEE ALSO"
+\fImaprcli_acerole\fP(1)
